@@ -1,9 +1,4 @@
-package deduplicator;
-
-import static java.lang.Integer.MAX_VALUE;
-import static java.nio.file.Paths.get;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
+package deduplicator.service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -12,17 +7,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.lang.Integer.MAX_VALUE;
+import static java.nio.file.Paths.get;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+
+// TODO write unit tests
 public class Deduplicator {
 
-    private static final String ROOT = "C:/temp";
+    private static final String ROOT = "C:/temp"; // TODO replace with parameter
 
-    public static void main(String... args) {
+    public static List<List<Path>> getList() {
         try {
             try (Stream<Path> paths = Files.walk(get(ROOT), MAX_VALUE)) {
 
@@ -55,13 +57,16 @@ public class Deduplicator {
                         .filter(f -> f.size() > 1)
                         .collect(Collectors.toList());
 
-                groupByChecksumFilter.stream().forEach(System.out::println);
+                groupByChecksumFilter.forEach(System.out::println);
+                return groupByChecksumFilter;
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        return new ArrayList<>();
     }
 
+    // TODO extract code, it should be a strategy pattern
     private static String getFileChecksum(Path file) {
         String result = "";
         try {
@@ -86,8 +91,8 @@ public class Deduplicator {
             // This bytes[] has bytes in decimal format;
             // Convert it to hexadecimal format
             StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < bytes.length; i++) {
-                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+            for (byte aByte : bytes) {
+                sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
             }
             result = sb.toString();
 
@@ -107,9 +112,8 @@ public class Deduplicator {
         byte[] buffer = new byte[1000];
         try (InputStream is = new FileInputStream(value.toString())) {
             is.read(buffer);
-            is.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // TODO replace with logger
         }
         return Arrays.toString(buffer);
     }
