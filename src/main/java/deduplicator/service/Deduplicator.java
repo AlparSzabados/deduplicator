@@ -1,5 +1,10 @@
 package deduplicator.service;
 
+import deduplicator.model.Element;
+import deduplicator.util.MD5CheckSum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,87 +26,51 @@ import static java.util.stream.Collectors.toList;
 
 // TODO write unit tests
 public class Deduplicator {
+    private static Logger LOGGER = LoggerFactory.getLogger(Deduplicator.class);
 
-    private static final String ROOT = "C:/temp"; // TODO replace with parameter
+    private static final String ROOT = ""; // TODO replace with parameter
 
-    public static List<List<Path>> getList() {
+    public static List<Element> getDuplicates() {
         try {
             try (Stream<Path> paths = Files.walk(get(ROOT), MAX_VALUE)) {
 
                 List<Path> pathsList = paths.filter(Files::isRegularFile)
-                        .collect(toList());
+                                            .collect(toList());
 
                 Map<Long, List<Path>> groupBySize = pathsList.stream()
-                        .collect(groupingBy(Deduplicator::getFileSize));
+                                                             .collect(groupingBy(Deduplicator::getFileSize));
 
                 List<Path> groupBySizeFilter = groupBySize.values()
-                        .stream()
-                        .filter(entry -> entry.size() > 1)
-                        .flatMap(List<Path>::stream)
-                        .collect(toList());
+                                                          .stream()
+                                                          .filter(entry -> entry.size() > 1)
+                                                          .flatMap(List<Path>::stream)
+                                                          .collect(toList());
 
                 Map<String, List<Path>> groupByStartBytes = groupBySizeFilter.stream()
-                        .collect(groupingBy(Deduplicator::getStartBytes));
+                                                                             .collect(groupingBy(Deduplicator::getStartBytes));
 
                 List<Path> groupByStartBytesFilter = groupByStartBytes.values()
-                        .stream()
-                        .filter(f -> f.size() > 1)
-                        .flatMap(List<Path>::stream)
-                        .collect(Collectors.toList());
+                                                                      .stream()
+                                                                      .filter(f -> f.size() > 1)
+                                                                      .flatMap(List<Path>::stream)
+                                                                      .collect(Collectors.toList());
 
                 Map<String, List<Path>> groupByChecksum = groupByStartBytesFilter.stream()
-                        .collect(groupingBy(Deduplicator::getFileChecksum));
+                                                                                 .collect(groupingBy(MD5CheckSum::getFileChecksum));
 
-                List<List<Path>> groupByChecksumFilter = groupByChecksum.values()
-                        .stream()
-                        .filter(f -> f.size() > 1)
-                        .collect(Collectors.toList());
+                List<Element> result = groupByChecksum.values()
+                                                      .stream()
+                                                      .filter(f -> f.size() > 1)
+                                                      .map(Element::new)
+                                                      .collect(toList());
 
-                groupByChecksumFilter.forEach(System.out::println);
-                return groupByChecksumFilter;
+//                result.entrySet().forEach(System.out::println);
+                return result;
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getLocalizedMessage());
         }
         return new ArrayList<>();
-    }
-
-    // TODO extract code, it should be a strategy pattern
-    private static String getFileChecksum(Path file) {
-        String result = "";
-        try {
-            MessageDigest digest = MessageDigest.getInstance("MD5");
-            FileInputStream fis = new FileInputStream(file.toString());
-
-            // Create byte array to read data in chunks
-            byte[] byteArray = new byte[1024];
-            int bytesCount = 0;
-
-            // Read file data and update in message digest
-            while ((bytesCount = fis.read(byteArray)) != -1) {
-                digest.update(byteArray, 0, bytesCount);
-            }
-
-            // close the stream; We don't need it now.
-            fis.close();
-
-            // Get the hash's bytes
-            byte[] bytes = digest.digest();
-
-            // This bytes[] has bytes in decimal format;
-            // Convert it to hexadecimal format
-            StringBuilder sb = new StringBuilder();
-            for (byte aByte : bytes) {
-                sb.append(Integer.toString((aByte & 0xff) + 0x100, 16).substring(1));
-            }
-            result = sb.toString();
-
-        } catch (IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-
-        // return complete hash
-        return result;
     }
 
     private static String getEndBytes(Path value) {
@@ -113,7 +82,7 @@ public class Deduplicator {
         try (InputStream is = new FileInputStream(value.toString())) {
             is.read(buffer);
         } catch (IOException e) {
-            e.printStackTrace(); // TODO replace with logger
+            LOGGER.error(e.getLocalizedMessage());
         }
         return Arrays.toString(buffer);
     }
@@ -122,7 +91,7 @@ public class Deduplicator {
         try {
             return Files.size(path);
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.error(e.getLocalizedMessage());
         }
         return 0L;
     }
