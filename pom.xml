@@ -76,6 +76,13 @@
             <scope>test</scope>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.webjars.bower/ajax-bootstrap-select -->
+        <dependency>
+            <groupId>org.webjars.bower</groupId>
+            <artifactId>ajax-bootstrap-select</artifactId>
+            <version>1.4.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
