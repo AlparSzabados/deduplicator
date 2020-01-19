@@ -1,34 +1,19 @@
 package deduplicator.controller;
 
 import deduplicator.model.Element;
-import org.springframework.web.bind.annotation.*;
+import deduplicator.service.Deduplicator;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
 import java.util.List;
 
+@CrossOrigin(origins = "*")
 @RestController
 public class DataController {
 
-    @RequestMapping(path="/data", method=RequestMethod.GET)
-    public List<Element> getData(){
-        // TODO replace with real data
-        // Test Data
-        Element element = new Element();
-        element.name = "test";
-        element.lastName = "1";
-        element.lastName = "1";
-        element.email = "1";
-        element.phone = "1";
-        element.active = "1";
-
-        List<Element> elements = new ArrayList<>();
-        elements.add(element);
-        elements.add(element);
-        elements.add(element);
-        elements.add(element);
-        elements.add(element);
-        elements.add(element);
-        elements.add(element);
-        return elements;
+    @GetMapping("/data")
+    public List<Element> getData() {
+        return Deduplicator.getDuplicates();
     }
 }
