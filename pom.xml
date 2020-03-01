@@ -58,6 +58,12 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.apache.tomcat</groupId>
+            <artifactId>tomcat-dbcp</artifactId>
+            <version>9.0.1</version>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.webjars.bower/ajax-bootstrap-select -->
         <dependency>
             <groupId>org.webjars.bower</groupId>

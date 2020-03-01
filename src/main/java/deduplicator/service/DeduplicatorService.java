@@ -1,9 +1,12 @@
 package deduplicator.service;
 
 import deduplicator.model.Element;
+import deduplicator.repository.DeduplicatorRepository;
 import deduplicator.util.MD5CheckSum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -23,9 +26,13 @@ import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 // TODO write unit tests
-public class Deduplicator {
+@Service
+public class DeduplicatorService {
     private static final String ROOT = ""; // TODO replace with parameter
-    private static Logger LOGGER = LoggerFactory.getLogger(Deduplicator.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(DeduplicatorService.class);
+
+    @Autowired
+    private DeduplicatorRepository repository;
 
     public static List<Element> getDuplicates() {
         try {
@@ -47,39 +54,39 @@ public class Deduplicator {
         return new ArrayList<>();
     }
 
-    private static List<Element> getResultAsElement(Map<String, List<Path>> groupByChecksum) {
-        return groupByChecksum.values()
-                              .stream()
-                              .filter(f -> f.size() > 1)
-                              .map(Element::new)
-                              .collect(toList());
-    }
-
-    private static Map<String, List<Path>> groupByCheckSum(Map<String, List<Path>> groupByStartBytes) {
-        List<Path> groupByStartBytesFilter = groupByStartBytes.values()
-                                                              .stream()
-                                                              .filter(f -> f.size() > 1)
-                                                              .flatMap(List<Path>::stream)
-                                                              .collect(Collectors.toList());
-        return groupByStartBytesFilter.stream()
-                                      .collect(groupingBy(MD5CheckSum::getFileChecksum));
+    private static Map<Long, List<Path>> traverseFileTree(Stream<Path> paths) {
+        List<Path> pathsList = paths.filter(Files::isRegularFile)
+                .collect(toList());
+        return pathsList.stream()
+                .collect(groupingBy(DeduplicatorService::getFileSize));
     }
 
     private static Map<String, List<Path>> groupByStartBytes(Map<Long, List<Path>> groupBySize) {
         List<Path> groupBySizeFilter = groupBySize.values()
-                                                  .stream()
-                                                  .filter(entry -> entry.size() > 1)
-                                                  .flatMap(List<Path>::stream)
-                                                  .collect(toList());
+                .stream()
+                .filter(entry -> entry.size() > 1)
+                .flatMap(List<Path>::stream)
+                .collect(toList());
         return groupBySizeFilter.stream()
-                                .collect(groupingBy(Deduplicator::getStartBytes));
+                .collect(groupingBy(DeduplicatorService::getStartBytes));
     }
 
-    private static Map<Long, List<Path>> traverseFileTree(Stream<Path> paths) {
-        List<Path> pathsList = paths.filter(Files::isRegularFile)
-                                    .collect(toList());
-        return pathsList.stream()
-                        .collect(groupingBy(Deduplicator::getFileSize));
+    private static List<Element> getResultAsElement(Map<String, List<Path>> groupByChecksum) {
+        return groupByChecksum.values()
+                .stream()
+                .filter(f -> f.size() > 1)
+                .map(Element::new)
+                .collect(toList());
+    }
+
+    private static Map<String, List<Path>> groupByCheckSum(Map<String, List<Path>> groupByStartBytes) {
+        List<Path> groupByStartBytesFilter = groupByStartBytes.values()
+                .stream()
+                .filter(f -> f.size() > 1)
+                .flatMap(List<Path>::stream)
+                .collect(Collectors.toList());
+        return groupByStartBytesFilter.stream()
+                .collect(groupingBy(MD5CheckSum::getFileChecksum));
     }
 
     private static String getEndBytes(Path value) {

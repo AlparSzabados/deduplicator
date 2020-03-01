@@ -1,11 +1,24 @@
 package deduplicator.model;
 
-import java.nio.file.Path;
+import javax.persistence.*;
+import java.io.Serializable;
 
-public class Duplicate {
+@Table(name = "duplicates")
+@Entity
+public class Duplicate implements Serializable {
+
+    @Id
+    @Column
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public String id;
+
+    @Column
+    public int size;
+
+    @Column
     public String path;
 
-    public Duplicate(Path path) {
+    public Duplicate(String path) {
         this.path = path.toString();
     }
 }

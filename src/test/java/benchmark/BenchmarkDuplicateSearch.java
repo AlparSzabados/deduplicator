@@ -1,6 +1,6 @@
 package benchmark;
 
-import deduplicator.service.Deduplicator;
+import deduplicator.service.DeduplicatorService;
 import org.openjdk.jmh.annotations.*;
 import org.openjdk.jmh.infra.Blackhole;
 import org.openjdk.jmh.runner.Runner;
@@ -40,7 +40,7 @@ public class BenchmarkDuplicateSearch {
     @Benchmark
     public void testCheckSum(Blackhole bh) {
         for (int i = 0; i < N; i++) {
-            Deduplicator.getDuplicates();
+            DeduplicatorService.getDuplicates();
         }
     }
 
