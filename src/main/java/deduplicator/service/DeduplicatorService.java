@@ -13,11 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static java.lang.Integer.MAX_VALUE;
@@ -37,15 +33,11 @@ public class DeduplicatorService {
     public static List<Element> getDuplicates() {
         try {
             try (Stream<Path> paths = Files.walk(get(ROOT), MAX_VALUE)) {
-
                 Map<Long, List<Path>> groupBySize = traverseFileTree(paths);
-
                 Map<String, List<Path>> groupByStartBytes = groupByStartBytes(groupBySize);
-
                 Map<String, List<Path>> groupByChecksum = groupByCheckSum(groupByStartBytes);
-
                 List<Element> result = getResultAsElement(groupByChecksum);
-//                result.entrySet().forEach(System.out::println);
+
                 return result;
             }
         } catch (IOException e) {
@@ -55,20 +47,15 @@ public class DeduplicatorService {
     }
 
     private static Map<Long, List<Path>> traverseFileTree(Stream<Path> paths) {
-        List<Path> pathsList = paths.filter(Files::isRegularFile)
-                .collect(toList());
-        return pathsList.stream()
-                .collect(groupingBy(DeduplicatorService::getFileSize));
+        return paths.filter(Files::isRegularFile).collect(groupingBy(DeduplicatorService::getFileSize));
     }
 
     private static Map<String, List<Path>> groupByStartBytes(Map<Long, List<Path>> groupBySize) {
-        List<Path> groupBySizeFilter = groupBySize.values()
-                .stream()
-                .filter(entry -> entry.size() > 1)
-                .flatMap(List<Path>::stream)
-                .collect(toList());
-        return groupBySizeFilter.stream()
-                .collect(groupingBy(DeduplicatorService::getStartBytes));
+        return getDuplicates(groupBySize.values()).collect(groupingBy(DeduplicatorService::getStartBytes));
+    }
+
+    private static Map<String, List<Path>> groupByCheckSum(Map<String, List<Path>> groupByStartBytes) {
+        return getDuplicates(groupByStartBytes.values()).collect(groupingBy(MD5CheckSum::getFileChecksum));
     }
 
     private static List<Element> getResultAsElement(Map<String, List<Path>> groupByChecksum) {
@@ -79,14 +66,10 @@ public class DeduplicatorService {
                 .collect(toList());
     }
 
-    private static Map<String, List<Path>> groupByCheckSum(Map<String, List<Path>> groupByStartBytes) {
-        List<Path> groupByStartBytesFilter = groupByStartBytes.values()
-                .stream()
-                .filter(f -> f.size() > 1)
-                .flatMap(List<Path>::stream)
-                .collect(Collectors.toList());
-        return groupByStartBytesFilter.stream()
-                .collect(groupingBy(MD5CheckSum::getFileChecksum));
+    private static Stream<Path> getDuplicates(Collection<List<Path>> groupBySize) {
+        return groupBySize.stream()
+                .filter(entry -> entry.size() > 1)
+                .flatMap(List<Path>::stream);
     }
 
     private static String getEndBytes(Path value) {
@@ -94,7 +77,7 @@ public class DeduplicatorService {
     }
 
     private static String getStartBytes(Path value) {
-        byte[] buffer = new byte[1000];
+        byte[] buffer = new byte[1024];
         try (InputStream is = new FileInputStream(value.toString())) {
             is.read(buffer);
         } catch (IOException e) {
