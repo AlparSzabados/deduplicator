@@ -82,12 +82,18 @@
                 '<table id="table' + index + '" data-virtual-scroll="true" data-row-style="tableRowStyle" class="table table-condensed">',
                 '<thead class="thead-light">',
                 '<tr>',
-                '<th data-field="path">Paths</th>',
+                '<th data-field="location">Location</th>',
+                '</tr>',
+                '<tr>',
+                '<th data-field="size">Size</th>',
+                '</tr>',
+                '<tr>',
+                '<th data-field="lastModified">Last Modified</th>',
                 '</tr>',
                 '</thead>',
                 '</table>'
             ];
-            if (row.locations == null || row.locations.length == 0) return empty.join('');
+            if (row.paths == null || row.paths.length === 0) return empty.join('');
             return table.join('');
         }
 
@@ -173,7 +179,7 @@
         })
         $(function() {
             $('#table').on('expand-row.bs.table', function (e, index, row, $detail) {
-                $('#table'+index).bootstrapTable({data : row.locations});
+                $('#table'+index).bootstrapTable({data : row.paths});
         });
 	  })
         $remove.click(function () {
