@@ -1,6 +1,6 @@
 package deduplicator.controller;
 
-import deduplicator.model.Element;
+import deduplicator.model.Duplicate;
 import deduplicator.service.DeduplicatorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,7 +17,7 @@ public class DataController {
     private DeduplicatorService service;
 
     @GetMapping("/data")
-    public List<Element> getData() {
-        return service.getDuplicates();
+    public List<Duplicate> getData() {
+        return service.getDuplicateFiles();
     }
 }

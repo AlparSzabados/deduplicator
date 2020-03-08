@@ -1,13 +1,22 @@
 package deduplicator.util;
 
+import deduplicator.model.Duplicate;
+import deduplicator.model.DuplicateDTO;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.List;
 
 public class MD5CheckSum {
-    public static String getFileChecksum(Path file) {
+    public static String getFileChecksum(Path file, Duplicate d, List<DuplicateDTO> dtos) {
+        for (DuplicateDTO dto : dtos) {
+            if (dto != null && d.size.equals(dto.size) && d.startBytes.equals(dto.startBytes) && file.toString().equals(dto.path) && (dto.checkSum != null || !dto.checkSum.isEmpty()))
+                return dto.checkSum;
+        }
+
         String result = "";
         try {
             MessageDigest digest = MessageDigest.getInstance("MD5");

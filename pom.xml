@@ -64,6 +64,15 @@
             <version>9.0.1</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-entitymanager</artifactId>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.webjars.bower/ajax-bootstrap-select -->
         <dependency>
             <groupId>org.webjars.bower</groupId>
