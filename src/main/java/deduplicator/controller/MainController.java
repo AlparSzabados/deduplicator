@@ -12,13 +12,8 @@ import java.io.File;
 @Controller
 public class MainController {
 
-    @Autowired
-    private DeduplicatorRepository repository;
-
     @GetMapping("/")
     public String mainPage() {
-        repository.save(new Duplicate("mock/test/path"));
-        repository.flush();
         return "index";
     }
 }
