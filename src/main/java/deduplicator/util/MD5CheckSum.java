@@ -2,6 +2,9 @@ package deduplicator.util;
 
 import deduplicator.model.Duplicate;
 import deduplicator.model.DuplicateDTO;
+import deduplicator.service.DeduplicatorService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,10 +14,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.List;
 
 public class MD5CheckSum {
+    private static Logger LOGGER = LoggerFactory.getLogger(DeduplicatorService.class);
+
     public static String getFileChecksum(Path file, Duplicate d, List<DuplicateDTO> dtos) {
         for (DuplicateDTO dto : dtos) {
             if (dto != null && d.size.equals(dto.size) && d.startBytes.equals(dto.startBytes) && file.toString().equals(dto.path) && (dto.checkSum != null || !dto.checkSum.isEmpty()))
                 return dto.checkSum;
+                LOGGER.info("Entry already exists: " + d.name);
         }
 
         String result = "";

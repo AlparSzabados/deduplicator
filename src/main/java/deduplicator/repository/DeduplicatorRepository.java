@@ -7,9 +7,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.persistence.PersistenceContext;
+import java.util.List;
 
 @Repository
 public interface DeduplicatorRepository extends JpaRepository<DuplicateDTO, Long> {
 
-    public DuplicateDTO getDuplicateBySizeAndStartBytes(String size, String startBytes);
+    public List<DuplicateDTO> getDuplicateBySizeAndStartBytes(String size, String startBytes);
+
 }

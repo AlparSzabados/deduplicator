@@ -50,9 +50,14 @@ public class DeduplicatorService {
         return new ArrayList<>();
     }
 
-    private void persistDuplicates(List<Duplicate> snapshot) {
-        List<DuplicateDTO> result = new ArrayList<>();
-        for (Duplicate duplicate : snapshot) {
+    // TODO needs rework
+    private void persistDuplicates(List<Duplicate> duplicateList) {
+        for (Duplicate duplicate : duplicateList) {
+            List<DuplicateDTO> duplicateFromDb = repository.getDuplicateBySizeAndStartBytes(duplicate.size, duplicate.startBytes);
+            if (!duplicateFromDb.isEmpty()) {
+                repository.delete(duplicateFromDb);
+                LOGGER.info("Deleted duplicates: " + duplicateFromDb.size());
+            }
             for (DuplicateDetails p : duplicate.paths) {
                 DuplicateDTO duplicateDTO = new DuplicateDTO();
                 duplicateDTO.checkSum = duplicate.checkSum;
@@ -60,11 +65,10 @@ public class DeduplicatorService {
                 duplicateDTO.size = duplicate.size;
                 duplicateDTO.path = p.location.toString();
                 duplicateDTO.startBytes = duplicate.startBytes;
-                result.add(duplicateDTO);
+                repository.save(duplicateDTO);
             }
         }
 
-        repository.save(result);
         repository.flush();
     }
 
@@ -96,8 +100,9 @@ public class DeduplicatorService {
     }
 
     private List<Duplicate> groupByCheckSum(List<Duplicate> entries) {
-        List<DuplicateDTO> duplicatesWithCheckSum = entries.stream().map(d -> repository.getDuplicateBySizeAndStartBytes(d.size, d.startBytes)).collect(toList());
+        List<DuplicateDTO> duplicatesWithCheckSum = entries.stream().flatMap(d -> repository.getDuplicateBySizeAndStartBytes(d.size, d.startBytes).stream()).collect(toList());
 
+        // TODO needs rework
         return entries.stream().map(d -> {
             if (d.checkSum == null || d.checkSum.isEmpty()) {
                 Map<String, List<DuplicateDetails>> collect = d.paths.stream().collect(groupingBy(file -> MD5CheckSum.getFileChecksum(file.location, d, duplicatesWithCheckSum)));
