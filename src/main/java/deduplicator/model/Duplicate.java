@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 import static java.util.stream.Collectors.toList;
 
@@ -24,10 +25,13 @@ public class Duplicate implements Serializable {
 
     public String checkSum;
 
+    public String duplicateNumber;
+
     public Duplicate(Map.Entry<String, List<Path>> path) {
         this.size = path.getKey();
         setDetails(path.getValue());
         this.name = path.getValue().get(0).toString();
+        duplicateNumber = String.valueOf(paths.size());
     }
 
     public void setDetails(List<Path> path) {
