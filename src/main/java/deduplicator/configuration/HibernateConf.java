@@ -42,13 +42,6 @@ public class HibernateConf {
         return dataSource;
     }
 
-    @Bean
-    public PlatformTransactionManager transactionManager() {
-        HibernateTransactionManager transactionManager = new HibernateTransactionManager();
-        transactionManager.setSessionFactory(sessionFactory().getObject());
-        return transactionManager;
-    }
-
     private final Properties hibernateProperties() {
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.hbm2ddl.auto", "update");

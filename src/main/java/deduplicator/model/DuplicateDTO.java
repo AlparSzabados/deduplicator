@@ -28,4 +28,7 @@ public class DuplicateDTO {
     @Column(name = "checksum")
     public String checkSum;
 
+    @Column(name = "last_modified_date")
+    public String lastModified;
+
 }

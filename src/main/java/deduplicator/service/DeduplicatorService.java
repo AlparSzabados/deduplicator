@@ -53,23 +53,34 @@ public class DeduplicatorService {
     // TODO needs rework
     private void persistDuplicates(List<Duplicate> duplicateList) {
         for (Duplicate duplicate : duplicateList) {
-            List<DuplicateDTO> duplicateFromDb = repository.getDuplicateBySizeAndStartBytes(duplicate.size, duplicate.startBytes);
-            if (!duplicateFromDb.isEmpty()) {
-                repository.delete(duplicateFromDb);
-                LOGGER.info("Deleted duplicates: " + duplicateFromDb.size());
-            }
-            for (DuplicateDetails p : duplicate.paths) {
-                DuplicateDTO duplicateDTO = new DuplicateDTO();
-                duplicateDTO.checkSum = duplicate.checkSum;
-                duplicateDTO.name = duplicate.name;
-                duplicateDTO.size = duplicate.size;
-                duplicateDTO.path = p.location.toString();
-                duplicateDTO.startBytes = duplicate.startBytes;
-                repository.save(duplicateDTO);
+            for (DuplicateDetails details : duplicate.paths) {
+                DuplicateDTO duplicateFromDb = repository.getDuplicateBySizeAndStartBytesAndPath(duplicate.size, duplicate.startBytes, details.location.toString());
+                if (duplicateFromDb != null) {
+                    if (duplicateFromDb.lastModified.equals(details.lastModified)) {
+                        duplicateFromDb.checkSum = duplicate.checkSum;
+                        repository.save(duplicateFromDb);
+                    } else {
+                        repository.delete(duplicateFromDb);
+                        createDuplicateDTO(duplicate, details);
+                    }
+                } else {
+                    createDuplicateDTO(duplicate, details);
+                }
             }
         }
 
         repository.flush();
+    }
+
+    private void createDuplicateDTO(Duplicate duplicate, DuplicateDetails details) {
+        DuplicateDTO duplicateDTO = new DuplicateDTO();
+        duplicateDTO.checkSum = duplicate.checkSum;
+        duplicateDTO.name = duplicate.name;
+        duplicateDTO.size = duplicate.size;
+        duplicateDTO.path = details.location.toString();
+        duplicateDTO.startBytes = duplicate.startBytes;
+        duplicateDTO.lastModified = details.lastModified;
+        repository.save(duplicateDTO);
     }
 
     private Map<String, String> getValueAsKey(Set<Map.Entry<String, List<DuplicateDetails>>> values) {
@@ -100,7 +111,7 @@ public class DeduplicatorService {
     }
 
     private List<Duplicate> groupByCheckSum(List<Duplicate> entries) {
-        List<DuplicateDTO> duplicatesWithCheckSum = entries.stream().flatMap(d -> repository.getDuplicateBySizeAndStartBytes(d.size, d.startBytes).stream()).collect(toList());
+        List<DuplicateDTO> duplicatesWithCheckSum = entries.stream().flatMap(d -> repository.getDuplicatesBySizeAndStartBytes(d.size, d.startBytes).stream()).collect(toList());
 
         // TODO needs rework
         return entries.stream().map(d -> {
