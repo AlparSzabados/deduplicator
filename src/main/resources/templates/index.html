@@ -89,7 +89,7 @@
                 '</thead>',
                 '</table>'
             ];
-            if (row.paths == null || row.paths.length === 0) return empty.join('');
+            if (row.details == null || row.details.length === 0) return empty.join('');
             return table.join('');
         }
 
@@ -182,7 +182,7 @@
         })
         $(function() {
             $('#table').on('expand-row.bs.table', function (e, index, row, $detail) {
-                $('#table'+index).bootstrapTable({data : row.paths});
+                $('#table'+index).bootstrapTable({data : row.details});
         });
 	  })
         $remove.click(function () {

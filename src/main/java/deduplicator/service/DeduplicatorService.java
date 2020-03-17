@@ -53,7 +53,7 @@ public class DeduplicatorService {
     // TODO needs rework
     private void persistDuplicates(List<Duplicate> duplicateList) {
         for (Duplicate duplicate : duplicateList) {
-            for (DuplicateDetails details : duplicate.paths) {
+            for (DuplicateDetails details : duplicate.details) {
                 DuplicateDTO duplicateFromDb = repository.getDuplicateBySizeAndStartBytesAndPath(duplicate.size, duplicate.startBytes, details.location.toString());
                 if (duplicateFromDb != null) {
                     if (duplicateFromDb.lastModified.equals(details.lastModified)) {
@@ -116,11 +116,11 @@ public class DeduplicatorService {
         // TODO needs rework
         return entries.stream().map(d -> {
             if (d.checkSum == null || d.checkSum.isEmpty()) {
-                Map<String, List<DuplicateDetails>> collect = d.paths.stream().collect(groupingBy(file -> MD5CheckSum.getFileChecksum(file.location, d, duplicatesWithCheckSum)));
+                Map<String, List<DuplicateDetails>> collect = d.details.stream().collect(groupingBy(file -> MD5CheckSum.getFileChecksum(file.location, d, duplicatesWithCheckSum)));
                 for (Map.Entry<String, List<DuplicateDetails>> c : collect.entrySet()) {
                     if (c.getValue().size() > 1) {
                         d.checkSum = c.getKey();
-                        d.paths = c.getValue();
+                        d.details = c.getValue();
                     }
                 }
             }
@@ -129,7 +129,7 @@ public class DeduplicatorService {
     }
 
     private Stream<DuplicateDetails> flatten(List<Duplicate> value) {
-        return value.stream().filter(duplicate -> duplicate.paths.size() > 1).flatMap(duplicate -> duplicate.paths.stream());
+        return value.stream().filter(duplicate -> duplicate.details.size() > 1).flatMap(duplicate -> duplicate.details.stream());
     }
 
     private String readStartingBytes(DuplicateDetails value) {
