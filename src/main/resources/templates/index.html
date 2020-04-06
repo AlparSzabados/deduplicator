@@ -35,7 +35,14 @@
     <button id="remove" class="btn btn-danger" disabled>
         <i class="glyphicon glyphicon-remove"></i> Delete
     </button>
+    <div class="input-group mb-3">
+        <input type="text" class="form-control" placeholder="Set Root Folder" aria-label="Set Root Folder" aria-describedby="button-addon2">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="button-addon2">Set</button>
+        </div>
+    </div>
 </div>
+
 <table
         id="table"
         data-toolbar="#toolbar"
@@ -114,23 +121,6 @@
             values: [row.id]
           })
         }
-      }
-
-      function totalTextFormatter(data) {
-        return 'Total'
-      }
-
-      function totalNameFormatter(data) {
-        return data.length
-      }
-
-      function totalPriceFormatter(data) {
-        var field = this.field
-        return '$' + data.map(function (row) {
-          return +row[field].substring(1)
-        }).reduce(function (sum, i) {
-          return sum + i
-        }, 0)
       }
 
       function initTable() {

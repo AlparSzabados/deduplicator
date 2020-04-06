@@ -30,5 +30,4 @@ public class DuplicateDTO {
 
     @Column(name = "last_modified_date")
     public String lastModified;
-
 }
